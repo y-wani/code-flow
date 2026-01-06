@@ -1,29 +1,31 @@
 import { Composition } from 'remotion';
 import { TipVideo } from './TipVideo';
-// We use require here so the app doesn't crash if the file is missing initially
-const tipsData = require('./data/tips.json'); 
+import './index.css';
 
-import './style.css'; 
+// Use require() to avoid build errors if file is missing initially
+const tipsData = require('./data/tips.json');
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       {tipsData.map((tip: any) => {
         return (
-            <Composition
+          <Composition
             key={tip.id}
-            id={tip.id}
+            id={tip.id.replace(/_/g, '-')}
             component={TipVideo}
-            durationInFrames={30 * 20} // Default 20 seconds, adjust if audio is longer
+            durationInFrames={30 * 20}
             fps={30}
             width={1080}
             height={1920}
             defaultProps={{
-                title: tip.title,
-                codeSnippet: tip.code_snippet,
-                audioPath: tip.audio_path,
-            }}
-            />
+              title: tip.title,
+              codeSnippet: tip.code_snippet,
+              // 👇 ADD THIS LINE
+              productionSnippet: tip.production_snippet || tip.code_snippet, // Fallback to basic if production is missing
+              audioPath: tip.audio_path,
+            }}  
+          />
         );
       })}
     </>

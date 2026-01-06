@@ -1,0 +1,37 @@
+[
+  {
+    "id": "tip-00",
+    "title": "Stop Using Range(Len)",
+    "audio_path": "static/audio/tip_00.mp3",
+    "code_snippet": "# ❌ The Old Way\nfor i in range(len(data)):\n    print(i, data[i])\n\n# ✅ The Pro Way\nfor i, val in enumerate(data):\n    print(i, val)",
+    "production_snippet": "def process_large_csv(file_path):\n    \"\"\"Ingest user data with error tracking\"\"\"\n    with open(file_path, 'r') as f:\n        # 🚀 PRODUCTION USE CASE:\n        # Using enumerate to track line numbers for logs\n        for line_num, row in enumerate(f, start=1):\n            try:\n                user = parse_user(row)\n                db.save(user)\n            except ValueError as e:\n                # Crucial for debugging production logs:\n                logger.error(f\"Failed to parse line {line_num}: {e}\")"
+  },
+  {
+    "id": "tip_01",
+    "title": "Lambda Functions: One-Liners",
+    "code_snippet": "square = lambda x: x**2",
+    "script": "Need a quick function? Lambdas are your friend! Define functions inline, perfect for short operations. Assign it to a variable for reuse!",
+    "audio_path": "/audio/tip_01.mp3"
+  },
+  {
+    "id": "tip_02",
+    "title": "Enumerate Like a Pro",
+    "code_snippet": "for i, val in enumerate(my_list):",
+    "script": "Stop manually tracking indices! Enumerate gives you both the index and value in a loop. Cleaner code, fewer errors. So efficient!",
+    "audio_path": "/audio/tip_02.mp3"
+  },
+  {
+    "id": "tip_03",
+    "title": "Zip Multiple Iterables",
+    "code_snippet": "for a, b in zip(list1, list2):",
+    "script": "Combine lists element-wise with zip! Iterate through multiple lists simultaneously. Great for parallel processing. Zip it up!",
+    "audio_path": "/audio/tip_03.mp3"
+  },
+  {
+    "id": "tip_04",
+    "title": "Collections Counter Magic",
+    "code_snippet": "from collections import Counter; counts = Counter(my_list)",
+    "script": "Need to count item occurrences? Collections Counter does it instantly! Find most common elements, frequency analysis made easy. Import Counter and go!",
+    "audio_path": "/audio/tip_04.mp3"
+  }
+]

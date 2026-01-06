@@ -2,15 +2,13 @@ import os
 import json
 import asyncio
 import edge_tts
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Configuration
 NUMBER_OF_TIPS = 5
@@ -22,10 +20,11 @@ VOICE = "en-US-ChristopherNeural"
 async def generate_tips():
     print(f"🧠 Generating {NUMBER_OF_TIPS} tips for: {TOPIC}...")
 
-    # 1. Get Content from Gemini
-    model = genai.GenerativeModel(
-        "gemini-1.5-flash",
-        generation_config={"response_mime_type": "application/json"}
+    # 1. Setup New Gemini Client
+    # We use v1beta to ensure access to the newest 2.0 models
+    client = genai.Client(
+        api_key=os.getenv("GEMINI_API_KEY"),
+        http_options={'api_version': 'v1beta'}
     )
 
     prompt = f"""
@@ -46,12 +45,22 @@ async def generate_tips():
     """
 
     try:
-        response = model.generate_content(prompt)
+        # UPDATED: Using 'gemini-2.0-flash' based on your available models list
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type='application/json'
+            )
+        )
+        
+        # Parse JSON
         data = json.loads(response.text)
         tips = data['tips']
         print(f"✅ Received {len(tips)} tips from Gemini.")
+        
     except Exception as e:
-        print("❌ Error parsing Gemini JSON. Response might be empty or blocked.", e)
+        print("❌ Error parsing Gemini JSON:", e)
         return
 
     # 2. Generate Audio
@@ -60,16 +69,17 @@ async def generate_tips():
     print(f"🎙️ Generating Audio files...")
     
     for i, tip in enumerate(tips):
-        # We enforce a clean ID to avoid filename issues
+        # Create safe ID
         safe_id = f"tip_{i:02d}"
         tip['id'] = safe_id
         
         filename = f"{safe_id}.mp3"
         output_path = Path(AUDIO_OUTPUT_DIR) / filename
         
-        # Path relative to Remotion public folder
+        # Path for Remotion
         tip['audio_path'] = f"/audio/{filename}"
 
+        # Generate Audio
         communicate = edge_tts.Communicate(tip['script'], VOICE)
         await communicate.save(output_path)
         

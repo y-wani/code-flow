@@ -1,54 +1,80 @@
-import { AbsoluteFill, Audio, Sequence, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
-import { CodeBlock } from './CodeBlock';
-import { loadFont } from "@remotion/google-fonts/jetbrains-mono";
+import React from 'react';
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from 'remotion';
+import { CodeBlock } from './components/CodeBlock';
+import { IdeWindow } from './components/IdeWindow'; 
+import './index.css'; 
 
-const { fontFamily } = loadFont();
+// Define the props interface to include the new productionSnippet
+interface TipVideoProps {
+  title: string;
+  codeSnippet: string;
+  productionSnippet: string;
+  audioPath?: string;
+}
 
-export const TipVideo: React.FC<{ title: string; codeSnippet: string; audioPath: string }> = ({ title, codeSnippet, audioPath }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  
-  // Fade in title
-  const opacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
+export const TipVideo: React.FC<TipVideoProps> = ({ title, codeSnippet, productionSnippet }) => {
+    const frame = useCurrentFrame();
+    const { fps } = useVideoConfig();
 
-  return (
-    <AbsoluteFill style={{ backgroundColor: '#0f172a', fontFamily }}>
-      
-      {/* 1. Audio */}
-      {audioPath && <Audio src={audioPath} />}
+    // Define timing
+    const part1Duration = fps * 4; // First 4 seconds: Typing Animation
+    
+    // --- ANIMATION LOGIC FOR PART 1 ---
+    // Calculate how many characters to show based on the current frame.
+    // We stop the typing animation calculation once Part 1 is over to save resources.
+    const charsShown = Math.floor(frame * 2);
+    const textToShow = codeSnippet.slice(0, charsShown);
+    
+    // Blinking Cursor Logic:
+    // Only show cursor while typing. It blinks every 15 frames.
+    // logic: show if we haven't finished typing AND if we are in the "on" phase of the blink
+    const isTyping = frame < (codeSnippet.length / 2) + 20; 
+    const isBlinkOn = frame % 15 < 7;
+    const cursor = (isTyping && isBlinkOn) ? '▍' : ''; 
 
-      {/* 2. Title */}
-      <Sequence from={0}>
-        <AbsoluteFill style={{ justifyContent: 'start', alignItems: 'center', paddingTop: 180 }}>
-            <h1 style={{ 
-                color: '#38bdf8', 
-                fontSize: 80, 
-                lineHeight: 1.1,
-                textAlign: 'center', 
-                margin: '0 50px',
-                opacity 
-            }}>
-            {title}
-            </h1>
+    return (
+        <AbsoluteFill style={{ backgroundColor: '#0D1117' }}>
+            
+            {/* PART 1: The "Hook" - Typing Animation (0s -> 4s) */}
+            <Sequence from={0} durationInFrames={part1Duration}>
+                <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }}>
+                    <h1 style={{ 
+                        color: 'white', 
+                        fontFamily: 'JetBrains Mono', 
+                        fontSize: '50px', 
+                        marginBottom: '40px',
+                        textAlign: 'center',
+                        padding: '0 20px'
+                    }}>
+                        {title}
+                    </h1>
+                    {/* We use the animated text here */}
+                    <CodeBlock code={textToShow + cursor} />
+                </AbsoluteFill>
+            </Sequence>
+
+            {/* PART 2: The "Production" - Full IDE View (4s -> End) */}
+            <Sequence from={part1Duration}>
+                 <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }}>
+                    
+                    <h2 style={{ 
+                        color: '#58a6ff', 
+                        fontFamily: 'JetBrains Mono', 
+                        marginBottom: '30px',
+                        fontSize: '40px'
+                    }}>
+                        Real World Impact 🚀
+                    </h2>
+                    
+                    {/* We use the COMPLEX production snippet here inside the IDE window */}
+                    <IdeWindow 
+                        code={productionSnippet} 
+                        filename="data_service.py" 
+                    />
+
+                 </AbsoluteFill>
+            </Sequence>
+
         </AbsoluteFill>
-      </Sequence>
-
-      {/* 3. Code Block (Starts at 1 second mark) */}
-      <Sequence from={30}> 
-        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', top: 150 }}>
-            <div style={{ width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
-                <CodeBlock code={codeSnippet} language="python" />
-            </div>
-        </AbsoluteFill>
-      </Sequence>
-
-       {/* 4. Footer */}
-       <AbsoluteFill style={{ justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 60 }}>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 35, fontWeight: 'bold' }}>
-                @CodeFlow
-            </div>
-       </AbsoluteFill>
-
-    </AbsoluteFill>
-  );
+    );
 };
