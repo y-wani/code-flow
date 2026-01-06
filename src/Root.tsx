@@ -1,5 +1,5 @@
 import { Composition } from 'remotion';
-import { TipVideo } from './TipVideo';
+import { TipVideo, TipVideoProps } from './TipVideo'; // 👈 Import Props
 import './index.css';
 
 // Use require() to avoid build errors if file is missing initially
@@ -10,7 +10,8 @@ export const RemotionRoot: React.FC = () => {
     <>
       {tipsData.map((tip: any) => {
         return (
-          <Composition
+          // 👇 FIX: Pass the generic type here to satisfy TypeScript
+          <Composition<TipVideoProps>
             key={tip.id}
             id={tip.id.replace(/_/g, '-')}
             component={TipVideo}
@@ -21,8 +22,7 @@ export const RemotionRoot: React.FC = () => {
             defaultProps={{
               title: tip.title,
               codeSnippet: tip.code_snippet,
-              // 👇 ADD THIS LINE
-              productionSnippet: tip.production_snippet || tip.code_snippet, // Fallback to basic if production is missing
+              productionSnippet: tip.production_snippet || tip.code_snippet, 
               audioPath: tip.audio_path,
             }}  
           />
