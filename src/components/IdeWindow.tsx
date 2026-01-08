@@ -1,16 +1,11 @@
-// src/components/IdeWindow.tsx
 import React from 'react';
 import { CodeBlock } from './CodeBlock';
 
-export const IdeWindow: React.FC<{ code: string; filename: string }> = ({ code, filename }) => {
+// 👈 Update props to accept activeLine
+export const IdeWindow: React.FC<{ code: string; filename: string; activeLine?: number | null }> = ({ code, filename, activeLine }) => {
   
-  // 📏 Auto-Scaling Logic
-  // 1. Find the longest line in the snippet
+  // 📏 Auto-Scaling Logic (Same as before)
   const longestLine = code.split('\n').reduce((a, b) => (a.length > b.length ? a : b), '').length;
-  
-  // 2. Calculate font size: 
-  // If line is > 40 chars, shrink it. Minimum size is 16px.
-  // The '55' is a multiplier that works well for 1080p width.
   const calculatedFontSize = Math.max(16, Math.min(28, 800 / longestLine * 1.8));
 
   return (
@@ -75,14 +70,17 @@ export const IdeWindow: React.FC<{ code: string; filename: string }> = ({ code, 
           <div style={{ color: 'white', backgroundColor: '#30363d', padding: '2px 5px', borderRadius: '4px' }}>
              📄 {filename}
           </div>
-          <div>&nbsp; 📄 config.json</div>
         </div>
 
         {/* Code Area */}
         <div style={{ flex: 1, padding: '20px', overflow: 'hidden' }}>
           <div style={{ height: '100%', width: '100%' }}>
-             {/* 👇 Pass the calculated font size here */}
-             <CodeBlock code={code} customFontSize={calculatedFontSize} />
+             {/* 👇 Pass activeLine down */}
+             <CodeBlock 
+                code={code} 
+                customFontSize={calculatedFontSize} 
+                activeLine={activeLine}
+             />
           </div>
         </div>
 
